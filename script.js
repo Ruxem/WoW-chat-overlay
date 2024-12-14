@@ -16,10 +16,18 @@ const itemColors = {
 const chatContainer = document.getElementById("chat-container");
 
 const client = new tmi.Client({
-    channels: ['theruxemburg'], // Replace with your Twitch channel name
+    channels: ['theruxemburg'], 
+    identity: {
+        username: 'theruxemburg', 
+        password: 'oauth:wbd5m0es8winbkfkj3fuulwj768uzj'
+    }
 });
 
 client.connect();
+
+client.on('connected', (address, port) => {
+    console.log(`Connected to ${address}:${port}`);
+});
 
 client.on('message', (channel, tags, message, self) => {
     if (self) return; // Ignore own messages
