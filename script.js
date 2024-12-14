@@ -18,8 +18,7 @@ const chatContainer = document.getElementById("chat-container");
 const client = new tmi.Client({
     channels: ['theruxemburg'], 
     identity: {
-        username: 'theruxemburg', 
-        password: 'oauth:wbd5m0es8winbkfkj3fuulwj768uzj'
+        username: 'theruxemburg'
     }
 });
 
