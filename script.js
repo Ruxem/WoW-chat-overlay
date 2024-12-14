@@ -23,7 +23,7 @@ const client = new tmi.Client({
     }
 });
 
-client.connect();
+client.connect().catch(console.error);
 
 client.on('connected', (address, port) => {
     console.log(`Connected to ${address}:${port}`);
