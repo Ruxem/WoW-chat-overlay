@@ -20,6 +20,8 @@
   .timestamp {
     color: gray;
     margin-right: 5px;
+    font-family: 'Arial Narrow', sans-serif;
+    font-size: 14px;
   }
   
   .channel {
