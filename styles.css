@@ -7,10 +7,7 @@
     font-family: 'Arial Narrow', sans-serif;
     font-size: 18px;
     color: white;
-    overflow-y: auto; 
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
+    overflow-y: auto; /* Enable scrolling */
   }
   
   .chat-line {
@@ -40,5 +37,10 @@
   
   .message span {
     font-weight: bold;
+  }
+  
+  #chat-container {
+    max-height: 100%;
+    overflow-y: auto;
   }
   
