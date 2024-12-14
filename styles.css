@@ -7,6 +7,7 @@
     font-family: 'Arial Narrow', sans-serif;
     font-size: 18px;
     color: white;
+    overflow: hidden;
   }
   
   .chat-line {
