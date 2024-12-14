@@ -36,6 +36,7 @@
   .message {
     margin-left: 5px;
     flex-grow: 1;
+    width: 320px;
   }
   
   .message span {
