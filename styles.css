@@ -1,0 +1,44 @@
+#wow-chat-overlay {
+    width: 594px;
+    height: 204px;
+    background: rgba(0, 0, 0, 0.85);
+    border-radius: 5px;
+    padding: 10px;
+    font-family: 'Arial Narrow', sans-serif;
+    font-size: 18px;
+    color: white;
+    overflow-y: auto; 
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+  }
+  
+  .chat-line {
+    display: flex;
+    align-items: baseline;
+    margin-bottom: 4px;
+    color: white;
+  }
+  
+  .timestamp {
+    color: gray;
+    margin-right: 5px;
+  }
+  
+  .channel {
+    margin-right: 5px;
+  }
+  
+  .username {
+    margin-left: 1px;
+  }
+  
+  .message {
+    margin-left: 5px;
+    flex-grow: 1;
+  }
+  
+  .message span {
+    font-weight: bold;
+  }
+  
