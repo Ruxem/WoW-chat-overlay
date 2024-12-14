@@ -50,7 +50,7 @@ function addMessage({ timestamp, username, roles, text }) {
   
     const line = document.createElement("div");
     line.className = "chat-line";
-    line.style.color = color;
+    line.style.color = color; 
   
     const processedText = processItemCommands(text); 
 
@@ -62,7 +62,7 @@ function addMessage({ timestamp, username, roles, text }) {
     `;
   
     chatContainer.appendChild(line);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
+    chatContainer.scrollTop = chatContainer.scrollHeight; 
 }
 
 function getRoleDetails(roles, text) {
@@ -77,11 +77,11 @@ function getRoleDetails(roles, text) {
 
 function processItemCommands(text) {
     if (text.startsWith("W/")) {
-        text = text.substring(2);
+        text = text.substring(2); 
     }
     
     if (text.startsWith("Y/")) {
-        text = text.substring(2);
+        text = text.substring(2); 
         return `<span style="color: red;">[Y]</span> ${text}`;
     }
 
