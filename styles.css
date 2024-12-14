@@ -22,7 +22,6 @@
     margin-right: 10px;
     font-family: 'Arial Narrow', sans-serif;
     font-size: 14px;
-    width: 100%;
   }
   
   .channel {
@@ -47,6 +46,5 @@
   #chat-container {
     max-height: 100%;
     overflow: hidden;
-    height: 100%;
   }
   
