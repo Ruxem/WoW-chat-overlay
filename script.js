@@ -28,9 +28,9 @@ client.on('message', (channel, tags, message, self) => {
     if (self) return; 
   
     const username = tags['display-name'] || tags.username;
-    const { color, tag } = getRoleDetails(message, tags); // Determine role by message prefix
+    const { color, tag } = getRoleDetails(message, tags); 
 
-    const processedText = processItemCommands(message); // Process items like L[], C[], etc.
+    const processedText = processItemCommands(message); 
 
     addMessage({
         timestamp: new Date().toLocaleTimeString(),
@@ -42,7 +42,6 @@ client.on('message', (channel, tags, message, self) => {
 });
 
 function getRoleDetails(text, tags) {
-    // Check for message-based roles
     if (text.startsWith("W/")) {
         return roleColors.wFrom;
     }
@@ -56,7 +55,6 @@ function getRoleDetails(text, tags) {
         return roleColors.trade;
     }
 
-    // Default to Twitch roles if no custom prefix matches
     const roles = [];
     if (tags.badges?.moderator) roles.push(roleColors.moderator);
     if (tags.badges?.subscriber) roles.push(roleColors.subscriber);
@@ -70,7 +68,6 @@ function addMessage({ timestamp, username, color, tag, text }) {
     line.className = "chat-line";
     line.style.color = color;
 
-    // Remove the prefixes like 'Y/', '1/', etc., before displaying the message
     const cleanText = text.replace(/^(W\/|Y\/|1\/|2\/)/, "");
 
     line.innerHTML = `
