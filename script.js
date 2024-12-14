@@ -17,24 +17,17 @@ const chatContainer = document.getElementById("chat-container");
 
 const client = new tmi.Client({
     channels: ['theruxemburg'], 
-    identity: {
-        username: 'theruxemburg'
-    }
 });
 
-client.connect().catch(console.error);
-
-client.on('connected', (address, port) => {
-    console.log(`Connected to ${address}:${port}`);
-});
+client.connect();
 
 client.on('message', (channel, tags, message, self) => {
-    if (self) return; // Ignore own messages
+    if (self) return; 
   
     const username = tags['display-name'] || tags.username;
     const badges = tags.badges || {};
   
-    const roles = getRolesFromBadges(badges); // Get user roles based on badges
+    const roles = getRolesFromBadges(badges); 
   
     addMessage({
         timestamp: new Date().toLocaleTimeString(),
@@ -53,13 +46,13 @@ function getRolesFromBadges(badges) {
 }
 
 function addMessage({ timestamp, username, roles, text }) {
-    const { color, tag } = getRoleDetails(roles, text); // Get role color and tag
+    const { color, tag } = getRoleDetails(roles, text); 
   
     const line = document.createElement("div");
     line.className = "chat-line";
     line.style.color = color;
   
-    const processedText = processItemCommands(text); // Process item commands
+    const processedText = processItemCommands(text); 
 
     line.innerHTML = `
       <span class="timestamp">${timestamp}</span>
@@ -69,7 +62,7 @@ function addMessage({ timestamp, username, roles, text }) {
     `;
   
     chatContainer.appendChild(line);
-    chatContainer.scrollTop = chatContainer.scrollHeight; // Auto-scroll to bottom
+    chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
 function getRoleDetails(roles, text) {
@@ -83,6 +76,25 @@ function getRoleDetails(roles, text) {
 }
 
 function processItemCommands(text) {
+    if (text.startsWith("W/")) {
+        text = text.substring(2);
+    }
+    
+    if (text.startsWith("Y/")) {
+        text = text.substring(2);
+        return `<span style="color: red;">[Y]</span> ${text}`;
+    }
+
+    if (text.startsWith("1/")) {
+        text = text.substring(2); 
+        return `<span style="color: rgb(255, 191, 191);">[1. General]</span> ${text}`;
+    }
+
+    if (text.startsWith("2/")) {
+        text = text.substring(2); 
+        return `<span style="color: rgb(255, 191, 191);">[2. Trade]</span> ${text}`;
+    }
+
     return text.replace(/([LCURE])\[(.*?)\]/g, (match, type, itemName) => {
         const color = itemColors[type] || "white";
         return `<span style="color: ${color};">[${itemName}]</span>`;
