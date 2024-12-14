@@ -3,6 +3,9 @@ const roleColors = {
     subscriber: { color: "rgb(64, 255, 64)", tag: "[Guild]" },
     default: { color: "white", tag: "[Say]" },
     wFrom: { color: "rgb(255, 128, 255)", tag: "[W From]" },
+    yell: { color: "red", tag: "[Y]" },
+    general: { color: "rgb(255, 191, 191)", tag: "[1. General]" },
+    trade: { color: "rgb(255, 191, 191)", tag: "[2. Trade]" },
 };
 
 const itemColors = {
@@ -25,87 +28,64 @@ client.on('message', (channel, tags, message, self) => {
     if (self) return; 
   
     const username = tags['display-name'] || tags.username;
-    const badges = tags.badges || {};
-  
-    const roles = getRolesFromBadges(badges); 
-  
+    const { color, tag } = getRoleDetails(message, tags); // Determine role by message prefix
+
+    const processedText = processItemCommands(message); // Process items like L[], C[], etc.
+
     addMessage({
         timestamp: new Date().toLocaleTimeString(),
         username: username,
-        roles: roles,
-        text: message,
+        color: color,
+        tag: tag,
+        text: processedText,
     });
 });
 
-function getRolesFromBadges(badges) {
+function getRoleDetails(text, tags) {
+    // Check for message-based roles
+    if (text.startsWith("W/")) {
+        return roleColors.wFrom;
+    }
+    if (text.startsWith("Y/")) {
+        return roleColors.yell;
+    }
+    if (text.startsWith("1/")) {
+        return roleColors.general;
+    }
+    if (text.startsWith("2/")) {
+        return roleColors.trade;
+    }
+
+    // Default to Twitch roles if no custom prefix matches
     const roles = [];
-    if (badges.moderator) roles.push("moderator");
-    if (badges.subscriber) roles.push("subscriber");
-    if (badges.broadcaster) roles.push("broadcaster");
-    return roles;
+    if (tags.badges?.moderator) roles.push(roleColors.moderator);
+    if (tags.badges?.subscriber) roles.push(roleColors.subscriber);
+    if (roles.length > 0) return roles[0]; // Return first matched role
+
+    return roleColors.default; // Default role
 }
 
-function addMessage({ timestamp, username, roles, text }) {
-    const { color, tag } = getRoleDetails(roles, text); 
-  
+function addMessage({ timestamp, username, color, tag, text }) {
     const line = document.createElement("div");
     line.className = "chat-line";
-    line.style.color = color; // Apply the role color to the entire message
-  
-    const processedText = processItemCommands(text); 
+    line.style.color = color;
 
-    // Replace the `[Guild]`, `[Say]`, and `[Party]` tags with the custom colors and tags
-    const messageWithRoleTag = processedText.replace(/\[Guild\]/g, `<span style="color: ${roleColors.subscriber.color}">[Guild]</span>`)
-        .replace(/\[Say\]/g, `<span style="color: ${roleColors.default.color}">[Say]</span>`)
-        .replace(/\[Party\]/g, `<span style="color: ${roleColors.moderator.color}">[Party]</span>`);
-  
+    // Remove the prefixes like 'Y/', '1/', etc., before displaying the message
+    const cleanText = text.replace(/^(W\/|Y\/|1\/|2\/)/, "");
+
     line.innerHTML = `
       <span class="timestamp">${timestamp}</span>
       <span class="channel">${tag}</span> 
       <span class="username" style="color: ${color}">[${username}]</span>: 
-      <span class="message">${messageWithRoleTag}</span>
+      <span class="message">${cleanText}</span>
     `;
   
     chatContainer.appendChild(line);
-    chatContainer.scrollTop = chatContainer.scrollHeight; // Auto-scroll to bottom
-}
-
-function getRoleDetails(roles, text) {
-    // Apply the role color to the entire message
-    if (text.startsWith("W/")) {
-        return roleColors.wFrom;
-    }
-
-    if (roles.includes("moderator")) return roleColors.moderator;
-    if (roles.includes("subscriber")) return roleColors.subscriber;
-    return roleColors.default;
+    chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
 function processItemCommands(text) {
-    // Handle 'W/' prefix
-    if (text.startsWith("W/")) {
-        text = text.substring(2); // Remove 'W/' prefix
-    }
-    
-    // Handle 'Y/' prefix (red color)
-    if (text.startsWith("Y/")) {
-        text = text.substring(2); // Remove 'Y/' prefix
-        return `<span style="color: red;">[Y]</span> ${text}`;
-    }
-
-    // Handle '1/' prefix (light red color)
-    if (text.startsWith("1/")) {
-        text = text.substring(2); // Remove '1/' prefix
-        return `<span style="color: rgb(255, 191, 191);">[1. General]</span> ${text}`;
-    }
-
-    // Handle '2/' prefix (light red color)
-    if (text.startsWith("2/")) {
-        text = text.substring(2); // Remove '2/' prefix
-        return `<span style="color: rgb(255, 191, 191);">[2. Trade]</span> ${text}`;
-    }
-
-    // Process other item commands (like [L], [C], etc.)
+    // Replace item tags (L[], C[], U[], etc.) with appropriate colors
     return text.replace(/([LCURE])\[(.*?)\]/g, (match, type, itemName) => {
         const color = itemColors[type] || "white";
         return `<span style="color: ${color};">[${itemName}]</span>`;
