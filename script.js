@@ -8,6 +8,7 @@ const roleColors = {
     yell: { color: "red", tag: "[Y]" },
     general: { color: "rgb(255, 191, 191)", tag: "[1. General]" },
     trade: { color: "rgb(255, 191, 191)", tag: "[2. Trade]" },
+    event: { color: "orange", tag: "" }
 };
 
 const itemColors = {
@@ -30,7 +31,7 @@ client.on('message', (channel, tags, message, self) => {
     if (self) return; 
   
     const username = tags['display-name'] || tags.username;
-    const { color, tag } = getRoleDetails(message, tags); 
+    const { color, tag, isEvent } = getRoleDetails(message, tags); 
 
     const processedText = processItemCommands(message); 
 
@@ -40,10 +41,14 @@ client.on('message', (channel, tags, message, self) => {
         color: color,
         tag: tag,
         text: processedText,
+        isEvent: isEvent
     });
 });
 
 function getRoleDetails(text, tags) {
+    if (text.startsWith("E/")) {
+        return { ...roleColors.event, isEvent: true };
+    }
     if (text.startsWith("W/")) {
         return roleColors.wFrom;
     }
@@ -62,31 +67,32 @@ function getRoleDetails(text, tags) {
     if (tags.badges?.moderator) roles.push(roleColors.moderator);
     if (tags.badges?.subscriber) roles.push(roleColors.subscriber);
     if (tags.badges?.vip) roles.push(roleColors.vip);
-    if (roles.length > 0) return roles[0]; // Return first matched role
+    if (roles.length > 0) return { ...roles[0], isEvent: false };
 
     return roleColors.default; // Default role
 }
 
-function addMessage({ timestamp, username, color, tag, text }) {
+function addMessage({ timestamp, username, color, tag, text, isEvent }) {
     const line = document.createElement("div");
     line.className = "chat-line";
     line.style.color = color;
 
-    const cleanText = text.replace(/^(W\/|Y\/|1\/|2\/)/, "");
+    const cleanText = text.replace(/^(E\/|W\/|Y\/|1\/|2\/)/, "");
+
+    const usernameDisplay = isEvent ? username : `[${username}]`;
 
     line.innerHTML = `
       <span class="timestamp">${timestamp}</span>
       <span class="channel">${tag}</span> 
-      <span class="username" style="color: ${color}">[${username}]</span>: 
+      <span class="username" style="color: ${color}">${usernameDisplay}</span>: 
       <span class="message">${cleanText}</span>
     `;
-  
+
     chatContainer.appendChild(line);
     chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
 function processItemCommands(text) {
-    // Replace item tags (L[], C[], U[], etc.) with appropriate colors
     return text.replace(/([LCURE])\[(.*?)\]/g, (match, type, itemName) => {
         const color = itemColors[type] || "white";
         return `<span style="color: ${color};">[${itemName}]</span>`;
