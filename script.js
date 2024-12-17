@@ -1,5 +1,7 @@
 const roleColors = {
+    broadcaster: { color: "rgb(118, 197, 255)", tag "[Party Leader]"},
     moderator: { color: "rgb(170, 170, 255)", tag: "[Party]" },
+    vip: {color: "rgb(80, 255, 80)", tag: "[Guild Officer]" },
     subscriber: { color: "rgb(64, 255, 64)", tag: "[Guild]" },
     default: { color: "white", tag: "[Say]" },
     wFrom: { color: "rgb(255, 128, 255)", tag: "[W From]" },
@@ -33,7 +35,7 @@ client.on('message', (channel, tags, message, self) => {
     const processedText = processItemCommands(message); 
 
     addMessage({
-        timestamp: new Date().toLocaleTimeString(),
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }).replace(/^/, '[').replace(/$/, ']'),
         username: username,
         color: color,
         tag: tag,
@@ -56,8 +58,10 @@ function getRoleDetails(text, tags) {
     }
 
     const roles = [];
+    if (tags.badges?.broadcaster) roles.push(roleColors.broadcaster);
     if (tags.badges?.moderator) roles.push(roleColors.moderator);
     if (tags.badges?.subscriber) roles.push(roleColors.subscriber);
+    if (tags.badges?.vip) roles.push(roleColors.vip);
     if (roles.length > 0) return roles[0]; // Return first matched role
 
     return roleColors.default; // Default role
