@@ -5,7 +5,7 @@
     border-radius: 5px;
     padding: 10px;
     font-family: 'Arial Narrow', sans-serif;
-    font-size: 18px;
+    font-size: 22px;
     color: white;
     overflow: hidden;
   }
@@ -18,22 +18,24 @@
   
   .timestamp {
     color: gray;
-    margin-right: 10px;
     font-family: 'Arial Narrow', sans-serif;
-    font-size: 14px;
+    margin-left: 1px;
+    margin-right: 1px;
   }
   
   .channel {
-    margin-left: 5px;
-    margin-right: 5px;
+    margin-left: 1px;
+    margin-right: 1px;
   }
   
   .username {
-    margin-left: 5px;
+    margin-left: 1px;
+    margin-right: 1px;
   }
   
   .message {
-    margin-left: 5px;
+    margin-left: 1px;
+    margin-right: 1px;
     flex-grow: 1;
     width: 320px;
   }
@@ -46,4 +48,3 @@
     max-height: 100%;
     overflow: hidden;
   }
-  
