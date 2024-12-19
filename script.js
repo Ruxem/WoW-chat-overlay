@@ -62,7 +62,7 @@ client.on('message', (channel, tags, message, self) => {
     const username = tags['display-name'] || tags.username;
     const { color, tag, isEvent } = getRoleDetails(message, tags); 
 
-    if (isEvent) {
+    if (message.startsWith("L/")) {
         playSound(message);
         return; // Stop here to ensure the message is not added to the overlay
     }
@@ -110,7 +110,7 @@ function getRoleDetails(text, tags) {
 const cooldowns = {};
 
 function playSound(message) {
-    const command = message.replace("E/", "").trim();
+    const command = message.replace("L/", "").trim();
     const soundFile = soundMap[command];
 
     if (!soundFile) {
