@@ -107,16 +107,28 @@ function getRoleDetails(text, tags) {
     return roleColors.default; // Default role
 }
 
-function playSound(message){
-    const command = message.replace("E/", "").trim();
-    const soundFile = soundMap.[command];
+const cooldowns = {};
 
-    if (soundFile) {
-        const audio = new Audio(soundFile);
-        audio.play();
-    } else {
-        console.warn(`No sound found for command: ${command}`);
+function playSound(message) {
+    const command = message.replace("E/", "").trim();
+    const soundFile = soundMap[command];
+
+    if (!soundFile) {
+        console.error(`No sound file found for command: ${command}`);
+        return;
     }
+
+    const now = Date.now();
+    const lastPlayed = cooldowns[command] || 0;
+
+    if (now - lastPlayed < 30000) {
+        console.log(`Cooldown active for ${command}. Try again later.`);
+        return; // Exit if the cooldown hasn't expired
+    }
+
+    cooldowns[command] = now;
+    const audio = new Audio(soundFile);
+    audio.play();
 }
 
 function addMessage({ timestamp, username, color, tag, text, isEvent }) {
