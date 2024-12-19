@@ -19,6 +19,35 @@ const itemColors = {
     E: "purple",    
 };
 
+const soundMap = {
+    "OrcMale": "sounds/OrcMale.ogg",
+    "OrcFemale": "sounds/OrcFemale.ogg",
+    "UndeadMale": "sounds/UndeadMale.ogg",
+    "UndeadFemale": "sounds/UndeadFemale.ogg",
+    "TaurenMale": "sounds/TaurenFemale.ogg",
+    "TaurenFemale": "sounds/TaurenFemale.ogg",
+    "TrollMale": "sounds/TrollFemale.ogg",
+    "TrollFemale": "sounds/TrollFemale.ogg",
+    "BloodElfMale": "sounds/BloodElfMale.ogg",
+    "BloodElfFemale": "sounds/BloodElfFemale.ogg",
+    "Goblin": "sounds/Goblin.ogg",
+    "HumanMale": "sounds/HumanMale.ogg",
+    "HumanFemale": "sounds/HumanFemale.ogg",
+    "DwarfMale": "sounds/DwarfMale.ogg",
+    "DwarfFemale": "sounds/DwarfFemale.ogg",
+    "NightElfMale": "sounds/NightElfMale.ogg",
+    "NightElfFemale": "sounds/NightElfFemale.ogg",
+    "GnomeMale": "sounds/GnomeMale.ogg",
+    "GnomeFemale": "sounds/GnomeFemale.ogg",
+    "DraeneiMale": "sounds/DraeneiMale.ogg",
+    "DraeneiFemale": "sounds/DraeneiFemale.ogg",
+    "WorgenMale": "sounds/WorgenMale.ogg",
+    "WorgenFemale": "sounds/WorgenFemale.ogg",
+    "PandarenMale": "sounds/PandarenMale.ogg",
+    "PandarenFemale": "sounds/PandarenFemale.ogg",
+
+}
+
 const chatContainer = document.getElementById("chat-container");
 
 const client = new tmi.Client({
@@ -33,6 +62,11 @@ client.on('message', (channel, tags, message, self) => {
     const username = tags['display-name'] || tags.username;
     const { color, tag, isEvent } = getRoleDetails(message, tags); 
 
+    if (isEvent) {
+        playSound(message);
+        return; // Stop here to ensure the message is not added to the overlay
+    }
+
     const processedText = processItemCommands(message); 
 
     addMessage({
@@ -44,6 +78,7 @@ client.on('message', (channel, tags, message, self) => {
         isEvent: isEvent
     });
 });
+
 
 function getRoleDetails(text, tags) {
     if (text.startsWith("E/")) {
@@ -70,6 +105,18 @@ function getRoleDetails(text, tags) {
     if (roles.length > 0) return { ...roles[0], isEvent: false };
 
     return roleColors.default; // Default role
+}
+
+function playSound(message){
+    const command = message.replace("E/", "").trim();
+    const soundFile = soundMap.[command];
+
+    if (soundFile) {
+        const audio = new Audio(soundFile);
+        audio.play();
+    } else {
+        console.warn(`No sound found for command: ${command}`);
+    }
 }
 
 function addMessage({ timestamp, username, color, tag, text, isEvent }) {
