@@ -119,14 +119,14 @@ function playSound(message) {
     }
 
     const now = Date.now();
-    const lastPlayed = cooldowns[command] || 0;
+/*    const lastPlayed = cooldowns[command] || 0;
 
     if (now - lastPlayed < 30000) {
         console.log(`Cooldown active for ${command}. Try again later.`);
         return; // Exit if the cooldown hasn't expired
     }
 
-    cooldowns[command] = now;
+    cooldowns[command] = now; */
     const audio = new Audio(soundFile);
     audio.play();
 }
