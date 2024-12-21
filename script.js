@@ -26,7 +26,7 @@ const soundMap = {
     "UndeadFemale": "sounds/UndeadFemale.ogg",
     "TaurenMale": "sounds/TaurenFemale.ogg",
     "TaurenFemale": "sounds/TaurenFemale.ogg",
-    "TrollMale": "sounds/TrollFemale.ogg",
+    "TrollMale": "sounds/TrollMale.ogg",
     "TrollFemale": "sounds/TrollFemale.ogg",
     "BloodElfMale": "sounds/BloodElfMale.ogg",
     "BloodElfFemale": "sounds/BloodElfFemale.ogg",
@@ -51,7 +51,7 @@ const soundMap = {
 const chatContainer = document.getElementById("chat-container");
 
 const client = new tmi.Client({
-    channels: ['theruxemburg'], 
+    channels: ['parla'], 
 });
 
 client.connect();
@@ -119,15 +119,16 @@ function playSound(message) {
     }
 
     const now = Date.now();
-/*    const lastPlayed = cooldowns[command] || 0;
+    const lastPlayed = cooldowns[command] || 0;
 
     if (now - lastPlayed < 30000) {
         console.log(`Cooldown active for ${command}. Try again later.`);
         return; // Exit if the cooldown hasn't expired
     }
-
-    cooldowns[command] = now; */
+    
+    cooldowns[command] = now; 
     const audio = new Audio(soundFile);
+    audio.volume = 0.5;
     audio.play();
 }
 
