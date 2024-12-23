@@ -45,6 +45,7 @@ const soundMap = {
     "WorgenFemale": "sounds/WorgenFemale.ogg",
     "PandarenMale": "sounds/PandarenMale.ogg",
     "PandarenFemale": "sounds/PandarenFemale.ogg",
+    "Train": "sounds/Train.ogg",
 
 }
 
