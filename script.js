@@ -46,7 +46,6 @@ const soundMap = {
     "PandarenMale": "sounds/PandarenMale.ogg",
     "PandarenFemale": "sounds/PandarenFemale.ogg",
     "Train": "sounds/Train.ogg",
-
 }
 
 const chatContainer = document.getElementById("chat-container");
@@ -65,9 +64,13 @@ client.on('message', (channel, tags, message, self) => {
 
     if (message.startsWith("L/")) {
         playSound(message);
-        return; // Stop here to ensure the message is not added to the overlay
+        return;
     }
 
+    if (message.startsWith("ROLL/")) {
+        handleRollCommand(username);
+        return;
+    }
     const processedText = processItemCommands(message); 
 
     addMessage({
@@ -80,6 +83,61 @@ client.on('message', (channel, tags, message, self) => {
     });
 });
 
+client.on('subgift', (channel, username, streakMonths, recipient, methods, userstate) => {
+    handleGiftedSubs(username, 1);
+});
+
+client.on('submysterygift', (channel, username, numbOfSubs, methods, userstate) => {
+    handleGiftedSubs(username, numbOfSubs);
+});
+
+client.on('subscription', (channel, username, methods, message, userstate) => {
+    handleSubscription(username);
+});
+
+client.on('resub', (channel, username, months, message, userstate, methods) => {
+    handleSubscription(username);
+});
+
+function handleSubscription(username) {
+    const subscriptionMessage = `${username} has joined the guild`;
+
+    addMessage({
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }).replace(/^/, '[').replace(/$/, ']'),
+        username: "",
+        color: "yellow",
+        tag: "",
+        text: subscriptionMessage,
+        isEvent: true
+    });
+}
+
+function handleGiftedSubs(gifter, numOfSubs) {
+    const message = `${gifter} invited ${numOfSubs} player(s) to the guild`;
+
+    addMessage({
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }).replace(/^/, '[').replace(/$/, ']'),
+        username: "",
+        color: "yellow",
+        tag: "",
+        text: message,
+        isEvent: true
+    });
+}
+
+function handleRollCommand(username) {
+    const roll = Math.floor(Math.random() * 100) + 1;
+    const rollMessage = `${username} rolls ${roll} (1-100)`;
+
+    addMessage({
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }).replace(/^/, '[').replace(/$/, ']'),
+        username: "",
+        color: "yellow",
+        tag: "",
+        text: rollMessage,
+        isEvent: false
+    });
+}
 
 function getRoleDetails(text, tags) {
     if (text.startsWith("E/")) {
@@ -105,7 +163,7 @@ function getRoleDetails(text, tags) {
     if (tags.badges?.vip) roles.push(roleColors.vip);
     if (roles.length > 0) return { ...roles[0], isEvent: false };
 
-    return roleColors.default; // Default role
+    return roleColors.default;
 }
 
 const cooldowns = {};
@@ -120,14 +178,14 @@ function playSound(message) {
     }
 
     const now = Date.now();
-    const lastPlayed = cooldowns[command] || 0;
+/*   const lastPlayed = cooldowns[command] || 0;
 
     if (now - lastPlayed < 30000) {
         console.log(`Cooldown active for ${command}. Try again later.`);
-        return; // Exit if the cooldown hasn't expired
+        return;
     }
     
-    cooldowns[command] = now; 
+    cooldowns[command] = now; */
     const audio = new Audio(soundFile);
     audio.volume = 0.5;
     audio.play();
@@ -140,12 +198,13 @@ function addMessage({ timestamp, username, color, tag, text, isEvent }) {
 
     const cleanText = text.replace(/^(E\/|W\/|Y\/|1\/|2\/)/, "");
 
-    const usernameDisplay = isEvent ? username : `[${username}]`;
-    const colon = isEvent ? "" : ":"; // No colon for E/ messages
+    const usernameDisplay = username ? `[${username}]` : "";
+    const tagDisplay = tag ? `${tag} ` : "";
+    const colon = username || tag ? ":" : "";
 
     line.innerHTML = `
       <span class="timestamp">${timestamp}</span>
-      <span class="channel">${tag}</span> 
+      <span class="channel">${tagDisplay}</span> 
       <span class="username" style="color: ${color}">${usernameDisplay}</span>${colon} 
       <span class="message">${cleanText}</span>
     `;
