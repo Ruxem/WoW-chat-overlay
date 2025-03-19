@@ -51,7 +51,7 @@ const soundMap = {
 const chatContainer = document.getElementById("chat-container");
 
 const client = new tmi.Client({
-    channels: ['theruxemburg'], 
+    channels: ['RuxLion'], 
 });
 
 client.connect();
