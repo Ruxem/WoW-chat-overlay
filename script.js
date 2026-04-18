@@ -90,29 +90,49 @@ async function loadBTTVEmotes(channelName) {
         });
     } catch {}
 }
-
 async function loadFFZEmotes(channelName) {
     try {
         const res = await fetch(`https://api.frankerfacez.com/v1/room/${channelName}`);
         const data = await res.json();
 
-        Object.values(data.sets).forEach(set => {
-            set.emoticons.forEach(emote => {
-                ffzEmotes[emote.name] = `https:${emote.urls["2"]}`;
+        if (data.sets) {
+            Object.values(data.sets).forEach(set => {
+                set.emoticons.forEach(emote => {
+                    const url =
+                        emote.urls["4"] ||
+                        emote.urls["2"] ||
+                        emote.urls["1"];
+
+                    if (url) {
+                        ffzEmotes[emote.name] = url.startsWith("//")
+                            ? `https:${url}`
+                            : url;
+                    }
+                });
             });
-        });
+        }
 
         const globalRes = await fetch(`https://api.frankerfacez.com/v1/set/global`);
         const globalData = await globalRes.json();
 
-        Object.values(globalData.sets).forEach(set => {
-            set.emoticons.forEach(emote => {
-                ffzEmotes[emote.name] = `https:${emote.urls["2"]}`;
+        if (globalData.sets) {
+            Object.values(globalData.sets).forEach(set => {
+                set.emoticons.forEach(emote => {
+                    const url =
+                        emote.urls["4"] ||
+                        emote.urls["2"] ||
+                        emote.urls["1"];
+
+                    if (url) {
+                        ffzEmotes[emote.name] = url.startsWith("//")
+                            ? `https:${url}`
+                            : url;
+                    }
+                });
             });
-        });
+        }
     } catch {}
 }
-
 function parseTwitchEmotes(message, tags) {
     if (!tags.emotes) return message;
 
