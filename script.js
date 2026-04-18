@@ -50,9 +50,6 @@ const soundMap = {
 
 const chatContainer = document.getElementById("chat-container");
 
-/* =========================
-   7TV EMOTES
-========================= */
 let sevenTVEmotes = {};
 
 async function load7TVEmotes(channelName) {
@@ -85,9 +82,6 @@ function replace7TVEmotes(text) {
     });
 }
 
-/* =========================
-   TWITCH CLIENT
-========================= */
 const client = new tmi.Client({
     channels: ['RuxLion'],
 });
@@ -95,9 +89,6 @@ const client = new tmi.Client({
 client.connect();
 load7TVEmotes("RuxLion");
 
-/* =========================
-   EVENTS
-========================= */
 client.on('message', (channel, tags, message, self) => {
     if (self) return; 
   
@@ -143,9 +134,6 @@ client.on('resub', (channel, username) => {
     handleSubscription(username);
 });
 
-/* =========================
-   HANDLERS
-========================= */
 function handleSubscription(username) {
     addMessage({
         timestamp: getTime(),
@@ -181,9 +169,6 @@ function handleRollCommand(username) {
     });
 }
 
-/* =========================
-   HELPERS
-========================= */
 function getTime() {
     return new Date().toLocaleTimeString([], {
         hour: '2-digit',
