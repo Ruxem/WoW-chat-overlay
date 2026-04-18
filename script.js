@@ -67,11 +67,7 @@ async function load7TVEmotes(channelName) {
         data.emote_set.emotes.forEach(emote => {
             sevenTVEmotes[emote.name] = `https://cdn.7tv.app/emote/${emote.id}/2x.webp`;
         });
-
-        console.log("7TV loaded");
-    } catch (err) {
-        console.error("7TV error:", err);
-    }
+    } catch {}
 }
 
 async function loadBTTVEmotes(channelName) {
@@ -92,13 +88,8 @@ async function loadBTTVEmotes(channelName) {
         [...chanData.channelEmotes, ...chanData.sharedEmotes].forEach(emote => {
             bttvEmotes[emote.code] = `https://cdn.betterttv.net/emote/${emote.id}/2x`;
         });
-
-        console.log("BTTV loaded");
-    } catch (err) {
-        console.error("BTTV error:", err);
-    }
+    } catch {}
 }
-
 
 async function loadFFZEmotes(channelName) {
     try {
@@ -119,29 +110,44 @@ async function loadFFZEmotes(channelName) {
                 ffzEmotes[emote.name] = `https:${emote.urls["2"]}`;
             });
         });
-
-        console.log("FFZ loaded");
-    } catch (err) {
-        console.error("FFZ error:", err);
-    }
+    } catch {}
 }
 
+function parseTwitchEmotes(message, tags) {
+    if (!tags.emotes) return message;
+
+    const parts = [];
+    const emotes = [];
+
+    Object.entries(tags.emotes).forEach(([id, ranges]) => {
+        ranges.forEach(range => {
+            const [start, end] = range.split("-").map(Number);
+            emotes.push({ id, start, end });
+        });
+    });
+
+    emotes.sort((a, b) => a.start - b.start);
+
+    let lastIndex = 0;
+
+    emotes.forEach(emote => {
+        parts.push(message.slice(lastIndex, emote.start));
+        parts.push(`<img src="https://static-cdn.jtvnw.net/emoticons/v2/${emote.id}/default/dark/2.0" class="emote">`);
+        lastIndex = emote.end + 1;
+    });
+
+    parts.push(message.slice(lastIndex));
+
+    return parts.join("");
+}
 
 function replaceEmotes(text) {
     return text.replace(/\b([^\s]+)\b/g, (word) => {
         const clean = word.replace(/[.,!?]/g, "");
 
-        if (sevenTVEmotes[clean]) {
-            return `<img src="${sevenTVEmotes[clean]}" class="emote">`;
-        }
-
-        if (bttvEmotes[clean]) {
-            return `<img src="${bttvEmotes[clean]}" class="emote">`;
-        }
-
-        if (ffzEmotes[clean]) {
-            return `<img src="${ffzEmotes[clean]}" class="emote">`;
-        }
+        if (sevenTVEmotes[clean]) return `<img src="${sevenTVEmotes[clean]}" class="emote">`;
+        if (bttvEmotes[clean]) return `<img src="${bttvEmotes[clean]}" class="emote">`;
+        if (ffzEmotes[clean]) return `<img src="${ffzEmotes[clean]}" class="emote">`;
 
         return word;
     });
@@ -173,7 +179,8 @@ client.on('message', (channel, tags, message, self) => {
         return;
     }
 
-    let processedText = processItemCommands(message);
+    let processedText = parseTwitchEmotes(message, tags);
+    processedText = processItemCommands(processedText);
     processedText = replaceEmotes(processedText);
 
     addMessage({
@@ -245,7 +252,7 @@ function addMessage({ timestamp, username, color, tag, text }) {
     line.innerHTML = `
         <span class="timestamp">${timestamp}</span>
         <span class="channel">${tagDisplay}</span>
-        <span class="username" style="color:${color}">${usernameDisplay}</span>${colon}
+        <span class="username">${usernameDisplay}</span>${colon}
         <span class="message">${cleanText}</span>
     `;
 
