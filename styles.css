@@ -8,21 +8,24 @@
     font-size: 22px;
     color: white;
     overflow: hidden;
+    box-sizing: border-box;
 }
 
 #chat-container {
     height: 100%;
-    overflow: hidden;
+    width: 100%;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
 }
 
 .chat-line {
+    width: 100%;
     display: block;
     margin-bottom: 4px;
     line-height: 1.2;
-    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
 }
 
 .timestamp {
@@ -43,8 +46,6 @@
 
 .message {
     margin: 0 2px;
-    overflow-wrap: anywhere;
-    word-break: break-word;
 }
 
 .message span {
