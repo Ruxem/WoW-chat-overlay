@@ -46,16 +46,58 @@ const soundMap = {
     "PandarenMale": "sounds/PandarenMale.ogg",
     "PandarenFemale": "sounds/PandarenFemale.ogg",
     "Train": "sounds/Train.ogg",
-}
+};
 
 const chatContainer = document.getElementById("chat-container");
 
+/* =========================
+   7TV EMOTES
+========================= */
+let sevenTVEmotes = {};
+
+async function load7TVEmotes(channelName) {
+    try {
+        const userRes = await fetch(`https://decapi.me/twitch/id/${channelName}`);
+        const channelId = await userRes.text();
+
+        const res = await fetch(`https://7tv.io/v3/users/twitch/${channelId}`);
+        const data = await res.json();
+
+        if (!data.emote_set) return;
+
+        data.emote_set.emotes.forEach(emote => {
+            sevenTVEmotes[emote.name] = `https://cdn.7tv.app/emote/${emote.id}/2x.webp`;
+        });
+
+        console.log("7TV emotes loaded:", sevenTVEmotes);
+    } catch (err) {
+        console.error("7TV load error:", err);
+    }
+}
+
+function replace7TVEmotes(text) {
+    return text.replace(/\b([^\s]+)\b/g, (word) => {
+        const clean = word.replace(/[.,!?]/g, "");
+        if (sevenTVEmotes[clean]) {
+            return `<img src="${sevenTVEmotes[clean]}" class="emote" alt="${clean}" />`;
+        }
+        return word;
+    });
+}
+
+/* =========================
+   TWITCH CLIENT
+========================= */
 const client = new tmi.Client({
-    channels: ['RuxLion'], 
+    channels: ['RuxLion'],
 });
 
 client.connect();
+load7TVEmotes("RuxLion");
 
+/* =========================
+   EVENTS
+========================= */
 client.on('message', (channel, tags, message, self) => {
     if (self) return; 
   
@@ -71,15 +113,17 @@ client.on('message', (channel, tags, message, self) => {
         handleRollCommand(username);
         return;
     }
-    const processedText = processItemCommands(message); 
+
+    let processedText = processItemCommands(message);
+    processedText = replace7TVEmotes(processedText);
 
     addMessage({
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }).replace(/^/, '[').replace(/$/, ']'),
-        username: username,
-        color: color,
-        tag: tag,
+        username,
+        color,
+        tag,
         text: processedText,
-        isEvent: isEvent
+        isEvent
     });
 });
 
@@ -91,76 +135,76 @@ client.on('submysterygift', (channel, username, numbOfSubs, methods, userstate) 
     handleGiftedSubs(username, numbOfSubs);
 });
 
-client.on('subscription', (channel, username, methods, message, userstate) => {
+client.on('subscription', (channel, username) => {
     handleSubscription(username);
 });
 
-client.on('resub', (channel, username, months, message, userstate, methods) => {
+client.on('resub', (channel, username) => {
     handleSubscription(username);
 });
 
+/* =========================
+   HANDLERS
+========================= */
 function handleSubscription(username) {
-    const subscriptionMessage = `${username} has joined the guild`;
-
     addMessage({
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }).replace(/^/, '[').replace(/$/, ']'),
+        timestamp: getTime(),
         username: "",
         color: "yellow",
         tag: "",
-        text: subscriptionMessage,
+        text: `${username} has joined the guild`,
         isEvent: true
     });
 }
 
 function handleGiftedSubs(gifter, numOfSubs) {
-    const message = `${gifter} invited ${numOfSubs} player(s) to the guild`;
-
     addMessage({
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }).replace(/^/, '[').replace(/$/, ']'),
+        timestamp: getTime(),
         username: "",
         color: "yellow",
         tag: "",
-        text: message,
+        text: `${gifter} invited ${numOfSubs} player(s) to the guild`,
         isEvent: true
     });
 }
 
 function handleRollCommand(username) {
     const roll = Math.floor(Math.random() * 100) + 1;
-    const rollMessage = `${username} rolls ${roll} (1-100)`;
 
     addMessage({
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }).replace(/^/, '[').replace(/$/, ']'),
+        timestamp: getTime(),
         username: "",
         color: "yellow",
         tag: "",
-        text: rollMessage,
+        text: `${username} rolls ${roll} (1-100)`,
         isEvent: false
     });
 }
 
+/* =========================
+   HELPERS
+========================= */
+function getTime() {
+    return new Date().toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+    }).replace(/^/, '[').replace(/$/, ']');
+}
+
 function getRoleDetails(text, tags) {
-    if (text.startsWith("E/")) {
-        return { ...roleColors.event, isEvent: true };
-    }
-    if (text.startsWith("W/")) {
-        return roleColors.wFrom;
-    }
-    if (text.startsWith("Y/")) {
-        return roleColors.yell;
-    }
-    if (text.startsWith("1/")) {
-        return roleColors.general;
-    }
-    if (text.startsWith("2/")) {
-        return roleColors.trade;
-    }
+    if (text.startsWith("E/")) return { ...roleColors.event, isEvent: true };
+    if (text.startsWith("W/")) return roleColors.wFrom;
+    if (text.startsWith("Y/")) return roleColors.yell;
+    if (text.startsWith("1/")) return roleColors.general;
+    if (text.startsWith("2/")) return roleColors.trade;
 
     const roles = [];
     if (tags.badges?.broadcaster) roles.push(roleColors.broadcaster);
     if (tags.badges?.moderator) roles.push(roleColors.moderator);
     if (tags.badges?.subscriber) roles.push(roleColors.subscriber);
     if (tags.badges?.vip) roles.push(roleColors.vip);
+
     if (roles.length > 0) return { ...roles[0], isEvent: false };
 
     return roleColors.default;
@@ -172,26 +216,14 @@ function playSound(message) {
     const command = message.replace("L/", "").trim();
     const soundFile = soundMap[command];
 
-    if (!soundFile) {
-        console.error(`No sound file found for command: ${command}`);
-        return;
-    }
+    if (!soundFile) return;
 
-    const now = Date.now();
-/*   const lastPlayed = cooldowns[command] || 0;
-
-    if (now - lastPlayed < 30000) {
-        console.log(`Cooldown active for ${command}. Try again later.`);
-        return;
-    }
-    
-    cooldowns[command] = now; */
     const audio = new Audio(soundFile);
     audio.volume = 0.5;
     audio.play();
 }
 
-function addMessage({ timestamp, username, color, tag, text, isEvent }) {
+function addMessage({ timestamp, username, color, tag, text }) {
     const line = document.createElement("div");
     line.className = "chat-line";
     line.style.color = color;
@@ -203,10 +235,10 @@ function addMessage({ timestamp, username, color, tag, text, isEvent }) {
     const colon = username || tag ? ":" : "";
 
     line.innerHTML = `
-      <span class="timestamp">${timestamp}</span>
-      <span class="channel">${tagDisplay}</span> 
-      <span class="username" style="color: ${color}">${usernameDisplay}</span>${colon} 
-      <span class="message">${cleanText}</span>
+        <span class="timestamp">${timestamp}</span>
+        <span class="channel">${tagDisplay}</span> 
+        <span class="username" style="color: ${color}">${usernameDisplay}</span>${colon} 
+        <span class="message">${cleanText}</span>
     `;
 
     chatContainer.appendChild(line);
