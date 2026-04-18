@@ -10,13 +10,21 @@
     overflow: hidden;
 }
 
+#chat-container {
+    max-height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
 .chat-line {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
     margin-bottom: 4px;
-    color: white;
     line-height: 1.2;
+    color: white;
 }
 
 .timestamp {
@@ -30,6 +38,7 @@
     white-space: nowrap;
 }
 
+/* Username */
 .username {
     margin: 0 2px;
     white-space: nowrap;
@@ -38,8 +47,8 @@
 .message {
     margin: 0 2px;
     flex: 1;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: anywhere;
 }
 
 .message span {
@@ -47,21 +56,22 @@
 }
 
 .emote {
-    height: 1em;
+    height: 1.2em;
     max-height: 28px;
     vertical-align: middle;
     margin: 0 2px;
-    image-rendering: auto;
+    display: inline-block;
 }
 
 .emote img {
     display: inline-block;
 }
 
-#chat-container {
-    max-height: 100%;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
+.emote {
+    image-rendering: auto;
+}
+
+.chat-line img.emote {
+    margin-left: 1px;
+    margin-right: 1px;
 }
