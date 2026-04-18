@@ -57,9 +57,7 @@ async function load7TVEmotes(channelName) {
     try {
         const id = await fetch(`https://decapi.me/twitch/id/${channelName}`).then(r => r.text());
         const data = await fetch(`https://7tv.io/v3/users/twitch/${id}`).then(r => r.json());
-
         if (!data.emote_set) return;
-
         data.emote_set.emotes.forEach(e => {
             sevenTVEmotes[e.name] = `https://cdn.7tv.app/emote/${e.id}/2x.webp`;
         });
@@ -69,12 +67,9 @@ async function load7TVEmotes(channelName) {
 async function loadBTTVEmotes(channelName) {
     try {
         const id = await fetch(`https://decapi.me/twitch/id/${channelName}`).then(r => r.text());
-
         const global = await fetch(`https://api.betterttv.net/3/cached/emotes/global`).then(r => r.json());
         global.forEach(e => bttvEmotes[e.code] = `https://cdn.betterttv.net/emote/${e.id}/2x`);
-
         const channel = await fetch(`https://api.betterttv.net/3/cached/users/twitch/${id}`).then(r => r.json());
-
         (channel.channelEmotes || []).forEach(e => bttvEmotes[e.code] = `https://cdn.betterttv.net/emote/${e.id}/2x`);
         (channel.sharedEmotes || []).forEach(e => bttvEmotes[e.code] = `https://cdn.betterttv.net/emote/${e.id}/2x`);
     } catch (e) {}
@@ -84,7 +79,6 @@ async function loadFFZEmotes(channelName) {
     try {
         const name = channelName.toLowerCase();
         const data = await fetch(`https://api.frankerfacez.com/v1/room/${name}`).then(r => r.json());
-
         if (data.sets) {
             Object.values(data.sets).forEach(set => {
                 (set.emoticons || []).forEach(e => {
@@ -93,17 +87,22 @@ async function loadFFZEmotes(channelName) {
                 });
             });
         }
+        const global = await fetch(`https://api.frankerfacez.com/v1/set/global`).then(r => r.json());
+        Object.values(global.sets || {}).forEach(set => {
+            (set.emoticons || []).forEach(e => {
+                const url = e.urls?.["4"] || e.urls?.["2"] || e.urls?.["1"];
+                if (url) ffzEmotes[e.name] = `https:${url}`;
+            });
+        });
     } catch (e) {}
 }
 
 function replaceEmotes(text) {
     return text.split(" ").map(word => {
         const clean = word.replace(/[.,!?]/g, "");
-
         if (sevenTVEmotes[clean]) return `<img src="${sevenTVEmotes[clean]}" class="emote">`;
         if (bttvEmotes[clean]) return `<img src="${bttvEmotes[clean]}" class="emote">`;
         if (ffzEmotes[clean]) return `<img src="${ffzEmotes[clean]}" class="emote">`;
-
         return word;
     }).join(" ");
 }
@@ -143,12 +142,10 @@ function getRoleDetails(text, tags) {
     if (text.startsWith("Y/")) return roleColors.yell;
     if (text.startsWith("1/")) return roleColors.general;
     if (text.startsWith("2/")) return roleColors.trade;
-
     if (tags.badges?.broadcaster) return roleColors.broadcaster;
     if (tags.badges?.moderator) return roleColors.moderator;
     if (tags.badges?.vip) return roleColors.vip;
     if (tags.badges?.subscriber) return roleColors.subscriber;
-
     return roleColors.default;
 }
 
