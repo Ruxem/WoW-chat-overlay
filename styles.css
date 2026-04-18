@@ -19,20 +19,17 @@
     line-height: 1.2;
 }
 
-/* Timestamp */
 .timestamp {
     color: gray;
     margin: 0 2px;
     white-space: nowrap;
 }
 
-/* Channel tag */
 .channel {
     margin: 0 2px;
     white-space: nowrap;
 }
 
-/* Username */
 .username {
     margin: 0 2px;
     white-space: nowrap;
