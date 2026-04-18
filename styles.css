@@ -19,11 +19,10 @@
 }
 
 .chat-line {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
+    display: block;
     margin-bottom: 4px;
     line-height: 1.2;
+    white-space: pre-wrap;
 }
 
 .timestamp {
@@ -44,7 +43,6 @@
 
 .message {
     margin: 0 2px;
-    flex: 1;
     overflow-wrap: anywhere;
     word-break: break-word;
 }
