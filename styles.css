@@ -4,7 +4,7 @@
     background: rgba(0, 0, 0, 0.85);
     border-radius: 5px;
     padding: 10px;
-    font-family: 'Arial Narrow', sans-serif;
+    font-family: Arial, sans-serif;
     font-size: 22px;
     color: white;
     overflow: hidden;
@@ -12,52 +12,34 @@
 
 #chat-container {
     height: 100%;
-    overflow: hidden;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
+    overflow: hidden;
 }
 
 .chat-line {
     display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
     margin-bottom: 4px;
     line-height: 1.2;
 }
 
-.timestamp {
-    color: gray;
-    margin: 0 2px;
-    white-space: nowrap;
-}
-
-.channel {
-    margin: 0 2px;
-    white-space: nowrap;
-}
-
+.timestamp,
+.channel,
 .username {
     margin: 0 2px;
     white-space: nowrap;
 }
 
 .message {
-    margin: 0 2px;
     flex: 1;
     overflow-wrap: anywhere;
-    word-break: break-word;
-}
-
-.message span {
-    font-weight: bold;
+    margin: 0 2px;
 }
 
 .emote {
     height: 1.2em;
-    max-height: 28px;
     vertical-align: middle;
     margin: 0 2px;
-    display: inline-block;
-    image-rendering: auto;
 }
