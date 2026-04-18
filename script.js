@@ -12,11 +12,11 @@ const roleColors = {
 };
 
 const itemColors = {
-    L: "orange",   
-    C: "gray",      
-    U: "green",     
-    R: "blue",      
-    E: "purple",    
+    L: "orange",
+    C: "gray",
+    U: "green",
+    R: "blue",
+    E: "purple",
 };
 
 const soundMap = {
@@ -51,6 +51,8 @@ const soundMap = {
 const chatContainer = document.getElementById("chat-container");
 
 let sevenTVEmotes = {};
+let bttvEmotes = {};
+let ffzEmotes = {};
 
 async function load7TVEmotes(channelName) {
     try {
@@ -66,18 +68,78 @@ async function load7TVEmotes(channelName) {
             sevenTVEmotes[emote.name] = `https://cdn.7tv.app/emote/${emote.id}/2x.webp`;
         });
 
-        console.log("7TV emotes loaded:", sevenTVEmotes);
+        console.log("7TV loaded");
     } catch (err) {
-        console.error("7TV load error:", err);
+        console.error("7TV error:", err);
     }
 }
 
-function replace7TVEmotes(text) {
+async function loadBTTVEmotes(channelName) {
+    try {
+        const userRes = await fetch(`https://decapi.me/twitch/id/${channelName}`);
+        const channelId = await userRes.text();
+
+        const globalRes = await fetch(`https://api.betterttv.net/3/cached/emotes/global`);
+        const globalData = await globalRes.json();
+
+        globalData.forEach(emote => {
+            bttvEmotes[emote.code] = `https://cdn.betterttv.net/emote/${emote.id}/2x`;
+        });
+
+        const chanRes = await fetch(`https://api.betterttv.net/3/cached/users/twitch/${channelId}`);
+        const chanData = await chanRes.json();
+
+        [...chanData.channelEmotes, ...chanData.sharedEmotes].forEach(emote => {
+            bttvEmotes[emote.code] = `https://cdn.betterttv.net/emote/${emote.id}/2x`;
+        });
+
+        console.log("BTTV loaded");
+    } catch (err) {
+        console.error("BTTV error:", err);
+    }
+}
+
+async function loadFFZEmotes(channelName) {
+    try {
+        const res = await fetch(`https://api.frankerfacez.com/v1/room/${channelName}`);
+        const data = await res.json();
+
+        Object.values(data.sets).forEach(set => {
+            set.emoticons.forEach(emote => {
+                ffzEmotes[emote.name] = `https:${emote.urls["2"]}`;
+            });
+        });
+
+        const globalRes = await fetch(`https://api.frankerfacez.com/v1/set/global`);
+        const globalData = await globalRes.json();
+
+        Object.values(globalData.sets).forEach(set => {
+            set.emoticons.forEach(emote => {
+                ffzEmotes[emote.name] = `https:${emote.urls["2"]}`;
+            });
+        });
+
+        console.log("FFZ loaded");
+    } catch (err) {
+        console.error("FFZ error:", err);
+    }
+}
+function replaceEmotes(text) {
     return text.replace(/\b([^\s]+)\b/g, (word) => {
         const clean = word.replace(/[.,!?]/g, "");
+
         if (sevenTVEmotes[clean]) {
-            return `<img src="${sevenTVEmotes[clean]}" class="emote" alt="${clean}" />`;
+            return `<img src="${sevenTVEmotes[clean]}" class="emote">`;
         }
+
+        if (bttvEmotes[clean]) {
+            return `<img src="${bttvEmotes[clean]}" class="emote">`;
+        }
+
+        if (ffzEmotes[clean]) {
+            return `<img src="${ffzEmotes[clean]}" class="emote">`;
+        }
+
         return word;
     });
 }
@@ -87,13 +149,16 @@ const client = new tmi.Client({
 });
 
 client.connect();
+
 load7TVEmotes("RuxLion");
+loadBTTVEmotes("RuxLion");
+loadFFZEmotes("RuxLion");
 
 client.on('message', (channel, tags, message, self) => {
-    if (self) return; 
-  
+    if (self) return;
+
     const username = tags['display-name'] || tags.username;
-    const { color, tag, isEvent } = getRoleDetails(message, tags); 
+    const { color, tag, isEvent } = getRoleDetails(message, tags);
 
     if (message.startsWith("L/")) {
         playSound(message);
@@ -106,10 +171,10 @@ client.on('message', (channel, tags, message, self) => {
     }
 
     let processedText = processItemCommands(message);
-    processedText = replace7TVEmotes(processedText);
+    processedText = replaceEmotes(processedText);
 
     addMessage({
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }).replace(/^/, '[').replace(/$/, ']'),
+        timestamp: getTime(),
         username,
         color,
         tag,
@@ -117,44 +182,6 @@ client.on('message', (channel, tags, message, self) => {
         isEvent
     });
 });
-
-client.on('subgift', (channel, username, streakMonths, recipient, methods, userstate) => {
-    handleGiftedSubs(username, 1);
-});
-
-client.on('submysterygift', (channel, username, numbOfSubs, methods, userstate) => {
-    handleGiftedSubs(username, numbOfSubs);
-});
-
-client.on('subscription', (channel, username) => {
-    handleSubscription(username);
-});
-
-client.on('resub', (channel, username) => {
-    handleSubscription(username);
-});
-
-function handleSubscription(username) {
-    addMessage({
-        timestamp: getTime(),
-        username: "",
-        color: "yellow",
-        tag: "",
-        text: `${username} has joined the guild`,
-        isEvent: true
-    });
-}
-
-function handleGiftedSubs(gifter, numOfSubs) {
-    addMessage({
-        timestamp: getTime(),
-        username: "",
-        color: "yellow",
-        tag: "",
-        text: `${gifter} invited ${numOfSubs} player(s) to the guild`,
-        isEvent: true
-    });
-}
 
 function handleRollCommand(username) {
     const roll = Math.floor(Math.random() * 100) + 1;
@@ -164,11 +191,9 @@ function handleRollCommand(username) {
         username: "",
         color: "yellow",
         tag: "",
-        text: `${username} rolls ${roll} (1-100)`,
-        isEvent: false
+        text: `${username} rolls ${roll} (1-100)`
     });
 }
-
 function getTime() {
     return new Date().toLocaleTimeString([], {
         hour: '2-digit',
@@ -184,23 +209,17 @@ function getRoleDetails(text, tags) {
     if (text.startsWith("1/")) return roleColors.general;
     if (text.startsWith("2/")) return roleColors.trade;
 
-    const roles = [];
-    if (tags.badges?.broadcaster) roles.push(roleColors.broadcaster);
-    if (tags.badges?.moderator) roles.push(roleColors.moderator);
-    if (tags.badges?.subscriber) roles.push(roleColors.subscriber);
-    if (tags.badges?.vip) roles.push(roleColors.vip);
-
-    if (roles.length > 0) return { ...roles[0], isEvent: false };
+    if (tags.badges?.broadcaster) return roleColors.broadcaster;
+    if (tags.badges?.moderator) return roleColors.moderator;
+    if (tags.badges?.subscriber) return roleColors.subscriber;
+    if (tags.badges?.vip) return roleColors.vip;
 
     return roleColors.default;
 }
 
-const cooldowns = {};
-
 function playSound(message) {
     const command = message.replace("L/", "").trim();
     const soundFile = soundMap[command];
-
     if (!soundFile) return;
 
     const audio = new Audio(soundFile);
@@ -221,8 +240,8 @@ function addMessage({ timestamp, username, color, tag, text }) {
 
     line.innerHTML = `
         <span class="timestamp">${timestamp}</span>
-        <span class="channel">${tagDisplay}</span> 
-        <span class="username" style="color: ${color}">${usernameDisplay}</span>${colon} 
+        <span class="channel">${tagDisplay}</span>
+        <span class="username" style="color:${color}">${usernameDisplay}</span>${colon}
         <span class="message">${cleanText}</span>
     `;
 
@@ -233,6 +252,6 @@ function addMessage({ timestamp, username, color, tag, text }) {
 function processItemCommands(text) {
     return text.replace(/([LCURE])\[(.*?)\]/g, (match, type, itemName) => {
         const color = itemColors[type] || "white";
-        return `<span style="color: ${color};">[${itemName}]</span>`;
+        return `<span style="color:${color};">[${itemName}]</span>`;
     });
 }
