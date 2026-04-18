@@ -50,16 +50,10 @@ const soundMap = {
 
 const chatContainer = document.getElementById("chat-container");
 
-/* =========================
-   EMOTE STORAGE
-========================= */
 let sevenTVEmotes = {};
 let bttvEmotes = {};
 let ffzEmotes = {};
 
-/* =========================
-   7TV
-========================= */
 async function load7TVEmotes(channelName) {
     try {
         const userRes = await fetch(`https://decapi.me/twitch/id/${channelName}`);
@@ -80,9 +74,6 @@ async function load7TVEmotes(channelName) {
     }
 }
 
-/* =========================
-   BTTV
-========================= */
 async function loadBTTVEmotes(channelName) {
     try {
         const userRes = await fetch(`https://decapi.me/twitch/id/${channelName}`);
@@ -108,9 +99,7 @@ async function loadBTTVEmotes(channelName) {
     }
 }
 
-/* =========================
-   FFZ
-========================= */
+
 async function loadFFZEmotes(channelName) {
     try {
         const res = await fetch(`https://api.frankerfacez.com/v1/room/${channelName}`);
@@ -137,9 +126,7 @@ async function loadFFZEmotes(channelName) {
     }
 }
 
-/* =========================
-   EMOTE REPLACER
-========================= */
+
 function replaceEmotes(text) {
     return text.replace(/\b([^\s]+)\b/g, (word) => {
         const clean = word.replace(/[.,!?]/g, "");
@@ -160,9 +147,6 @@ function replaceEmotes(text) {
     });
 }
 
-/* =========================
-   TWITCH CLIENT
-========================= */
 const client = new tmi.Client({
     channels: ['RuxLion'],
 });
@@ -173,9 +157,6 @@ load7TVEmotes("RuxLion");
 loadBTTVEmotes("RuxLion");
 loadFFZEmotes("RuxLion");
 
-/* =========================
-   EVENTS
-========================= */
 client.on('message', (channel, tags, message, self) => {
     if (self) return;
 
@@ -205,9 +186,6 @@ client.on('message', (channel, tags, message, self) => {
     });
 });
 
-/* =========================
-   HANDLERS
-========================= */
 function handleRollCommand(username) {
     const roll = Math.floor(Math.random() * 100) + 1;
 
@@ -220,9 +198,6 @@ function handleRollCommand(username) {
     });
 }
 
-/* =========================
-   HELPERS
-========================= */
 function getTime() {
     return new Date().toLocaleTimeString([], {
         hour: '2-digit',
