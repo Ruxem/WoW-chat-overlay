@@ -11,7 +11,7 @@
 }
 
 #chat-container {
-    max-height: 100%;
+    height: 100%;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -24,7 +24,6 @@
     align-items: baseline;
     margin-bottom: 4px;
     line-height: 1.2;
-    color: white;
 }
 
 .timestamp {
@@ -38,7 +37,6 @@
     white-space: nowrap;
 }
 
-/* Username */
 .username {
     margin: 0 2px;
     white-space: nowrap;
@@ -61,17 +59,5 @@
     vertical-align: middle;
     margin: 0 2px;
     display: inline-block;
-}
-
-.emote img {
-    display: inline-block;
-}
-
-.emote {
     image-rendering: auto;
-}
-
-.chat-line img.emote {
-    margin-left: 1px;
-    margin-right: 1px;
 }
