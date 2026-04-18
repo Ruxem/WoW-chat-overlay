@@ -16,7 +16,7 @@ const itemColors = {
     C: "gray",
     U: "green",
     R: "blue",
-    E: "purple",
+    E: "purple"
 };
 
 const chatContainer = document.getElementById("chat-container");
@@ -25,13 +25,14 @@ let sevenTVEmotes = {};
 let bttvEmotes = {};
 let ffzEmotes = {};
 
+
 async function load7TVEmotes(channelName) {
     try {
-        const userRes = await fetch(`https://decapi.me/twitch/id/${channelName}`);
-        const channelId = await userRes.text();
+        const res = await fetch(`https://decapi.me/twitch/id/${channelName}`);
+        const channelId = await res.text();
 
-        const res = await fetch(`https://7tv.io/v3/users/twitch/${channelId}`);
-        const data = await res.json();
+        const data = await fetch(`https://7tv.io/v3/users/twitch/${channelId}`)
+            .then(r => r.json());
 
         if (!data.emote_set) return;
 
@@ -41,84 +42,96 @@ async function load7TVEmotes(channelName) {
         });
 
         console.log("7TV loaded");
-    } catch (err) {
-        console.error("7TV error:", err);
+    } catch (e) {
+        console.error(e);
     }
 }
+
 
 async function loadBTTVEmotes(channelName) {
     try {
-        const userRes = await fetch(`https://decapi.me/twitch/id/${channelName}`);
-        const channelId = await userRes.text();
+        const res = await fetch(`https://decapi.me/twitch/id/${channelName}`);
+        const channelId = await res.text();
 
-        const globalRes = await fetch(`https://api.betterttv.net/3/cached/emotes/global`);
-        const globalData = await globalRes.json();
+        const global = await fetch(`https://api.betterttv.net/3/cached/emotes/global`)
+            .then(r => r.json());
 
-        globalData.forEach(emote => {
-            bttvEmotes[emote.code] =
-                `https://cdn.betterttv.net/emote/${emote.id}/2x`;
+        global.forEach(e => {
+            bttvEmotes[e.code] =
+                `https://cdn.betterttv.net/emote/${e.id}/2x`;
         });
 
-        const chanRes = await fetch(`https://api.betterttv.net/3/cached/users/twitch/${channelId}`);
-        const chanData = await chanRes.json();
+        const channel = await fetch(`https://api.betterttv.net/3/cached/users/twitch/${channelId}`)
+            .then(r => r.json());
 
-        if (chanData.channelEmotes) {
-            chanData.channelEmotes.forEach(emote => {
-                bttvEmotes[emote.code] =
-                    `https://cdn.betterttv.net/emote/${emote.id}/2x`;
-            });
-        }
+        (channel.channelEmotes || []).forEach(e => {
+            bttvEmotes[e.code] =
+                `https://cdn.betterttv.net/emote/${e.id}/2x`;
+        });
 
-        if (chanData.sharedEmotes) {
-            chanData.sharedEmotes.forEach(emote => {
-                bttvEmotes[emote.code] =
-                    `https://cdn.betterttv.net/emote/${emote.id}/2x`;
-            });
-        }
+        (channel.sharedEmotes || []).forEach(e => {
+            bttvEmotes[e.code] =
+                `https://cdn.betterttv.net/emote/${e.id}/2x`;
+        });
 
         console.log("BTTV loaded");
-    } catch (err) {
-        console.error("BTTV error:", err);
+    } catch (e) {
+        console.error(e);
     }
 }
+
 
 async function loadFFZEmotes(channelName) {
     try {
-        // CHANNEL
-        const res = await fetch(`https://api.frankerfacez.com/v1/room/${channelName}`);
-        const data = await res.json();
+        const name = channelName.toLowerCase();
 
-        if (data.sets) {
-            Object.values(data.sets).forEach(set => {
-                set.emoticons.forEach(emote => {
-                    const url = emote.urls["2"] || emote.urls["1"];
-                    if (url) {
-                        ffzEmotes[emote.name] = `https:${url}`;
-                    }
+        const res = await fetch(`https://api.frankerfacez.com/v1/room/${name}`);
+        if (res.ok) {
+            const data = await res.json();
+
+            if (data.sets) {
+                Object.values(data.sets).forEach(set => {
+                    (set.emoticons || []).forEach(emote => {
+                        if (!emote.urls) return;
+
+                        const url =
+                            emote.urls["4"] ||
+                            emote.urls["2"] ||
+                            emote.urls["1"];
+
+                        if (url) {
+                            ffzEmotes[emote.name] = `https:${url}`;
+                        }
+                    });
                 });
-            });
+            }
         }
 
-        // GLOBAL
-        const globalRes = await fetch(`https://api.frankerfacez.com/v1/set/global`);
-        const globalData = await globalRes.json();
+        const global = await fetch(`https://api.frankerfacez.com/v1/set/global`)
+            .then(r => r.json());
 
-        if (globalData.sets) {
-            Object.values(globalData.sets).forEach(set => {
-                set.emoticons.forEach(emote => {
-                    const url = emote.urls["2"] || emote.urls["1"];
-                    if (url) {
-                        ffzEmotes[emote.name] = `https:${url}`;
-                    }
-                });
+        Object.values(global.sets || {}).forEach(set => {
+            (set.emoticons || []).forEach(emote => {
+                if (!emote.urls) return;
+
+                const url =
+                    emote.urls["4"] ||
+                    emote.urls["2"] ||
+                    emote.urls["1"];
+
+                if (url) {
+                    ffzEmotes[emote.name] = `https:${url}`;
+                }
             });
-        }
+        });
 
         console.log("FFZ loaded");
-    } catch (err) {
-        console.error("FFZ error:", err);
+    } catch (e) {
+        console.error(e);
     }
 }
+
+
 function replaceEmotes(text) {
     return text.split(" ").map(word => {
         const clean = word.replace(/[.,!?]/g, "");
@@ -139,8 +152,9 @@ function replaceEmotes(text) {
     }).join(" ");
 }
 
+
 const client = new tmi.Client({
-    channels: ['RuxLion'],
+    channels: ['RuxLion']
 });
 
 client.connect();
@@ -149,23 +163,28 @@ load7TVEmotes("RuxLion");
 loadBTTVEmotes("RuxLion");
 loadFFZEmotes("RuxLion");
 
+
 client.on('message', (channel, tags, message, self) => {
     if (self) return;
 
     const username = tags['display-name'] || tags.username;
-    const { color, tag } = getRoleDetails(message, tags);
 
-    let processedText = processItemCommands(message);
-    processedText = replaceEmotes(processedText);
+    const role = getRoleDetails(message, tags);
+    const color = role.color;
+    const tag = role.tag;
+
+    let processed = processItemCommands(message);
+    processed = replaceEmotes(processed);
 
     addMessage({
         timestamp: getTime(),
         username,
         color,
         tag,
-        text: processedText
+        text: processed
     });
 });
+
 
 function getRoleDetails(text, tags) {
     if (text.startsWith("E/")) return roleColors.event;
@@ -176,24 +195,25 @@ function getRoleDetails(text, tags) {
 
     if (tags.badges?.broadcaster) return roleColors.broadcaster;
     if (tags.badges?.moderator) return roleColors.moderator;
-    if (tags.badges?.subscriber) return roleColors.subscriber;
     if (tags.badges?.vip) return roleColors.vip;
+    if (tags.badges?.subscriber) return roleColors.subscriber;
 
     return roleColors.default;
 }
+
 
 function addMessage({ timestamp, username, color, tag, text }) {
     const line = document.createElement("div");
     line.className = "chat-line";
 
-    const usernameDisplay = username ? `[${username}]` : "";
-    const tagDisplay = tag ? `${tag} ` : "";
+    const user = username ? `[${username}]` : "";
+    const tagText = tag ? `${tag} ` : "";
     const colon = username || tag ? ":" : "";
 
     line.innerHTML = `
         <span class="timestamp">${timestamp}</span>
-        <span class="channel">${tagDisplay}</span>
-        <span class="username" style="color:${color}">${usernameDisplay}</span>${colon}
+        <span class="channel">${tagText}</span>
+        <span class="username" style="color:${color}">${user}</span>${colon}
         <span class="message">${text}</span>
     `;
 
@@ -201,12 +221,14 @@ function addMessage({ timestamp, username, color, tag, text }) {
     chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
+
 function processItemCommands(text) {
     return text.replace(/([LCURE])\[(.*?)\]/g, (m, type, item) => {
         const color = itemColors[type] || "white";
         return `<span style="color:${color};">[${item}]</span>`;
     });
 }
+
 
 function getTime() {
     return new Date().toLocaleTimeString([], {
